@@ -1,6 +1,6 @@
 # Tools
 import pyromat as pm
-from math import pi
+from math import pi, log
 
 
 # FIXED GLOBAL PARAMETERS
@@ -57,7 +57,7 @@ class CombustionChamber (object):
     def execute (self):
 
         for section in self.sections:
-            section.get_exit_conditions()
+            section.get_exit_state()
 
         return 
 
@@ -122,18 +122,69 @@ class Section (object):
         # Thermal parameters - default values
         self.update_thermal_properties(self.T_in, self.p_in)
 
+        # Filled in execute() / get_exit_state()
+        self.R_co = None
+        self.R_cc = None
+        self.R_w   = None
+        self.q    = None
 
-    def get_ohmic_thermal_equivalences ():
 
-        # NOTE: This is the thermal resistance of the coolant circuit
-        R_cc = self.t / (self.k * pi * self.Di) # [K/W] - thermal resistance of the coolant circuit
+    
+    # Get the exit conditions of the section
+    def execute (self):
+        
+        self.get_exit_state()
+        
+        
+        pass
+
+    # Function execute the analysis of the section - find outlet state of the section
+    def get_exit_state (self, T_hot_gas): # [K] - temperature of the hot gas entering the combustion chamber
+
+        """ PRESSURE ANALYSIS """
+        self.p_out = self.p_in - self.get_pressure_loss()
+        p_ = 0.5 * (self.p_out + self.p_in)
 
 
+        """ TEMPERATURE ANALYSIS """
+        T_out_assumption = self.T_in + 10 # [K] - initial guess for the outlet temperature
 
-    def get_exit_condition (self):
+        # Iterate until the exit temperature is found
+        while abs(T_out_assumption - T_out_cp) > 1e-3:
+            
+            # Determine the exit temperature
+            R_co, R_cc, R_w = self.get_ohmic_thermal_equivalences()
+
+            # Average temperature and pressure in the section
+            T_ = 0.5 * (T_out_assumption + self.T_in)
+
+            # Heat transfer rate analysis - ohmic resistance + cp method
+            q           = (T_hot_gas - T_) / (R_co + R_cc + R_w)     # [W/m] - specific heat transfer rate
+            Q           = q * self.dx * (pi * (self.Di + 2*self.t)) # [W]   - total heat transfer rate
+            T_out_cp    = self.T_in + self.mdot / (self.cp * Q)     # [K]   - outlet temperature via the cp method
+
+            # Get the new thermal parameters
+            self.update_thermal_properties(T_, p_)
+
+        # Save the ohmic resistance and the specific heat transfer rate
+        self.R_co = R_co
+        self.R_cc = R_cc
+        self.R_w  = R_w
+        self.q    = q
+
+        return self.T_out, self.p_out # [K], [Pa]
+
+
+    # Get ohmic equivalent thermal resistances
+    def get_ohmic_thermal_equivalences (self):
+
+        R_co = 1 / (self.h_co * (self.Di + self.t) * pi)               # [K/W] - thermal resistance of the coolant circuit
+        R_cc = 1 / (self.h_cc * (self.Di) * pi)                        # [K/W] - thermal resistance of the combustion chamber
+        R_w   = log((self.Di + self.t) / self.Di) / (2*pi*THERMAL_K)    # [K/W] - thermal resistance of the wall
+
+        return R_co, R_cc, R_w
 
         
-
     def get_velocity_coolant (self):
 
         """
@@ -146,8 +197,8 @@ class Section (object):
         """
 
         # Area of the coolant circuit cross-section
-        e = self.t2 * self.h * (self.n-1)                           # [m2] - area lost to channel separation walls
-        A = pi/4 * (pow(self.Di + self.h, 2) - pow(self.Di, 2))     # [m2] - cross-sectional area of the coolant circuit
+        e = self.t2 * self.h * (self.n-1)                                           # [m2] - area lost to channel separation walls
+        A = pi/4 * (pow(self.Di + self.h + self.t, 2) - pow(self.Di + self.t, 2))   # [m2] - cross-sectional area of the coolant circuit
 
         return self.mdot / ((A-e) * self.rho) # [m/s] - average velocity of the coolant in the channels for this section
 
@@ -176,7 +227,36 @@ class Section (object):
         self.k      = pm.gas.k(self.gas, T=T, p=p)
         self.rho    = pm.gas.rho(self.gas, T=T, p=p)
 
+
+    def get_pressure_loss (self):
+        """ 
+        Returns the pressure loss in the coolant circuit for this section
+        --------------------------------
+        in: 
+            None
+        out:
+            dp: [Pa] - pressure loss in the coolant circuit for this section
+        """
         
+        return 0
+
+
+    # returns keys temperature of the sections (inner, outer walls CC and the T_in, T_out)
+    # Used to asses the temperature distribution in the combustion chamber, and the validity of the design
+    # melting temperature of the wall.
+    def get_section_temperatures (self):
+
+
+        if not self.R_cc or not self.R_co or not self.R_w:
+            print("ERROR: get_section_temperatures() - section not executed yet.")
+            return -1, -1, -1, -1
+
+        # Determine the temperature of the inner and outer walls of the combustion chamber
+        self.T_wi = T_hot_gas - self.R_cc * self.q
+        self.T_wo = self.T_wi - self.R_w * self.q
+
+        return T_wi, T_wo, self.T_in, self.T_out
+
 
 
 
