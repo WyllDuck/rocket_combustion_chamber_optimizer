@@ -1,11 +1,13 @@
 # Tools
-from math import pi, log
+from math import pi, log, log10, sqrt
 from scipy.interpolate import LinearNDInterpolator, interp1d
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 # FIXED GLOBAL PARAMETERS
-N_SECTIONS      = 1    # [º]       - number of cross-sections of the combustion chamber - simulation resolution
+N_SECTIONS      = 300    # [º]       - number of cross-sections of the combustion chamber - simulation resolution
 
 # COOLANT PARAMETERS
 INLET_T         = 200   # [K]       - inlet temperature coolant
@@ -17,11 +19,11 @@ THERMAL_K       = 385   # [W/mK]    - thermal conductivity of the material
 FRICTION        = 0.01  # [-]       - friction factor
 
 # GEOMETRICAL PARAMETERS
-N_CHANNELS      = 10    # [-]       - number of channels in the combustion chamber
-INTER_CHANNEL_T = 0.001 # [m]       - thickness of the wall separating the channels
-LENGHT_CC       = 0.5   # [m]       - length of the combustion chamber
-HEIHT_CHANNEL   = 0.1  # [m]       - height of the cooling channel
-DI              = 0.1   # [m]       - inner diameter of the combustion chamber
+N_CHANNELS      = 40    # [-]       - number of channels in the combustion chamber
+INTER_CHANNEL_T = 0.005 # [m]       - thickness of the wall separating the channels
+LENGHT_CC       = 1.0   # [m]       - length of the combustion chamber
+HEIHT_CHANNEL   = 0.004 # [m]       - height of the cooling channel
+DI              = 1.0   # [m]       - inner diameter of the combustion chamber
 T               = 0.01  # [m]       - thickness of the wall separating the combustion chamber from the coolant circuit
 
 # HOT GAS PARAMETERS
@@ -35,8 +37,8 @@ HOT_GAS_V       = 1237      # [m/s]     - velocity of the hot gases
 THERMAL_PARA_HOT_GASES = [HOT_GAS_T, HOT_GAS_CP, HOT_GAS_MU, HOT_GAS_K, HOT_GAS_RHO, HOT_GAS_V]
 
 # INITIAL ASSUMPTIONS
-T_WI_INIT_ASSUMPTION = HOT_GAS_T - 10 # [K] - initial temperature assumption for inner combustion chamber wall
-T_WO_INIT_ASSUMPTION = HOT_GAS_T - 20 # [K] - initial temperature assumption for outer combustion chamber wall
+T_WI_INIT_ASSUMPTION = HOT_GAS_T - 1000 # [K] - initial temperature assumption for inner combustion chamber wall
+T_WO_INIT_ASSUMPTION = HOT_GAS_T - 1200 # [K] - initial temperature assumption for outer combustion chamber wall
 
 
 """ SOLVER CLASS """
@@ -99,7 +101,9 @@ class Solver (object):
         T_wi_assumption     = 0
         T_wo_assumption     = 0
         p_out_assumption    = 0
-        
+
+        Section.print_class_values()
+        self.cc.print_instance_values()
 
         # booting the iteration with the initial assumptions
         p_ = 0.5 * (s.p_out + s.p_in)           # average pressure in the section
@@ -116,7 +120,7 @@ class Solver (object):
             T_wo_assumption     = s.T_wo_
             p_out_assumption    = s.p_out
 
-            s.p_out = s.p_in - s.get_pressure_loss() # [Pa] - pressure loss in the section
+            s.p_out = s.p_in - s.get_pressure_loss()*0.00001    # [bar] - pressure loss in the section
 
             # Update thermal properties based on the new assumptions
             p_ = 0.5 * (s.p_out + s.p_in)           # average pressure in the section
@@ -130,7 +134,7 @@ class Solver (object):
             # Heat transfer rate analysis - ohmic resistance + cp method
             q           = (self.cc.T_gas - T_) / (R_co + R_cc + R_w)    # [W/m] - specific heat transfer rate
             Q           = q * s.dx * pi * (s.Di + 2*s.t)                # [W]   - total heat transfer rate
-            s.T_out     = s.T_in + s.mdot / (s.cp * Q)                  # [K]   - outlet temperature via the cp method
+            s.T_out     = s.T_in + Q / (s.cp * s.mdot)                  # [K]   - outlet temperature via the cp method
 
             # Save the ohmic resistance and the specific heat transfer rate
             s.R_co = R_co
@@ -139,7 +143,7 @@ class Solver (object):
             s.Q    = Q
 
             print("--------------------------------------------")
-            s.debug()
+            s.print_instance_values()
 
             # Check other assumptions (wall temperature update)
             s.get_section_temperatures(self.cc.T_gas)           # [K]   - get the wall temperatures - inner and outer
@@ -177,6 +181,18 @@ class CombustionChamber (object):
         self.v_gas      = v     # [m/s]     - velocity of the gas
       
 
+    # print the values of the instance
+    def print_instance_values (self):
+
+        print("T_gas: \t\t{}".format(self.T_gas))
+        print("cp_gas: \t{}".format(self.cp_gas))
+        print("mu_gas: \t{}".format(self.mu_gas))
+        print("k_gas: \t\t{}".format(self.k_gas))
+        print("rho_gas: \t{}".format(self.rho_gas))
+        print("v_gas: \t\t{}".format(self.v_gas))
+        print()
+
+
     # Get the convection coefficient of the hot-gas inside the combustion chamber
     def get_cc_convection_coefficient_nsection (self, T_wi, Di): 
         """ 
@@ -191,7 +207,14 @@ class CombustionChamber (object):
         
         Re = self.rho_gas * self.v_gas * Di / self.mu_gas
         Pr = self.cp_gas * self.mu_gas / self.k_gas
-        Nu = 0.0162 * pow(Re * Pr, 0.82) * pow(self.T_gas / T_wi, 0.57)
+        #Nu = 0.0162 * pow(Re * Pr, 0.82) * pow(self.T_gas / T_wi, 0.35)
+
+        epsilon = (1.82*log10(Re) - 1.64)**(-2)
+        Nu = (epsilon/8) * (Re - 1000) * Pr / (1 + 12.7 * sqrt(epsilon/8) * (pow(Pr, 2/3) - 1)) * (1 + pow((Di / LENGHT_CC), 2/3))
+
+        print("Re: \t{}".format(Re))
+        print("Pr: \t{}".format(Pr))
+        print("Nu: \t{}".format(Nu))
 
         return self.k_gas * Nu / Di # hot-gas convection coefficient
 
@@ -244,25 +267,54 @@ class Section (object):
         self.T_out  = self.T_in   # [K]   - outlet temperature
 
 
-    # print all attributes of the class
-    def debug (self):
+    # print all instance values
+    def print_instance_values (self):
+        
+        print("--- coolant_properties ---")
+        print("cp: \t", self.cp)
+        print("mu: \t", self.mu)
+        print("k: \t", self.k)
+        print("rho: \t", self.rho)
+        print()
 
-        print("Di: ", self.Di)
-        print("cp: ", self.cp)
-        print("mu: ", self.mu)
-        print("k: ", self.k)
-        print("rho: ", self.rho)
-        print("R_co: ", self.R_co)
-        print("R_cc: ", self.R_cc)
-        print("R_w: ", self.R_w)
-        print("Q: ", self.Q)
-        print("h_cc: ", self.h_cc)
-        print("h_co: ", self.h_co)
-        print("v: ", self.v)
-        print("p_out: ", self.p_out)
-        print("T_out: ", self.T_out)
-        print("T_wi_: ", self.T_wi_)
-        print("T_wo_: ", self.T_wo_)
+        print("--- thermal_resistances ---")
+        print("R_co: \t", self.R_co)
+        print("R_cc: \t", self.R_cc)
+        print("R_w: \t", self.R_w)
+        print()
+
+        print("--- convection_coefficients ---")
+        print("h_cc: \t", self.h_cc)
+        print("h_co: \t", self.h_co)
+        print()
+
+        print("--- other ---")
+        print("v: \t", self.v)
+        print("p_out: \t", self.p_out)
+        print("Q: \t", self.Q)
+        print("Di: \t", self.Di)
+        print()
+
+        print("--- temperatures ---")
+        print("T_out: \t", self.T_out)
+        print("T_in: \t", self.T_out)
+        print("T_wi_: \t", self.T_wi_)
+        print("T_wo_: \t", self.T_wo_)
+
+
+    # print all class values
+    @staticmethod
+    def print_class_values():
+
+        print("--- class values ---")
+        print("dx: \t", Section.dx)
+        print("mdot: \t", Section.mdot)
+        print("n: \t", Section.n)
+        print("t2: \t", Section.t2)
+        print("t: \t", Section.t)
+        print("f: \t", Section.f)
+        print("h: \t", Section.h)
+        print()
 
 
     # Get ohmic equivalent thermal resistances
@@ -371,6 +423,52 @@ def get_interpolation_function_for_mu_and_rho ():
     return 0
 
 
+# plot temperature using matplotlib.pyplot and numpy of the coolant circuit given a Solver object
+def plot_temperature (solver):
+
+    T = np.zeros([N_SECTIONS, 3])
+    dx_ = np.linspace(0, LENGHT_CC, N_SECTIONS)
+
+    for i in range(N_SECTIONS):
+        T[i, 0] = solver.sections[i].T_in
+        T[i, 1] = solver.sections[i].T_wi_
+        T[i, 2] = solver.sections[i].T_wo_
+
+    plt.plot(dx_, T[:, 0], label="T_in")
+    plt.plot(dx_, T[:, 1], label="T_wi_")
+    plt.plot(dx_, T[:, 2], label="T_wo_")
+
+    plt.legend()
+    plt.show()
+
+def plot_pressure (solver):
+
+    p = np.zeros(N_SECTIONS)
+    dx_ = np.linspace(0, LENGHT_CC, N_SECTIONS)
+
+    for i in range(N_SECTIONS):
+        p[i] = solver.sections[i].p_out
+
+    plt.plot(dx_, p, label="p_out")
+    
+    plt.legend()
+    plt.show()
+
+def plot_velocity (solver):
+
+    v = np.zeros(N_SECTIONS)
+    dx_ = np.linspace(0, LENGHT_CC, N_SECTIONS)
+
+    for i in range(N_SECTIONS):
+        v[i] = solver.sections[i].v
+
+    plt.plot(dx_, v, label="v")
+    
+    plt.legend()
+    plt.show()
+
+
+
 # Main
 def main ():
 
@@ -380,6 +478,10 @@ def main ():
     solver = Solver()
     solver.solve()
 
+    plot_temperature(solver)
+    plot_pressure(solver)
+    plot_velocity(solver)
+    
 
 if __name__ == "__main__":
     main()
