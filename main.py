@@ -5,12 +5,12 @@ import pandas as pd
 
 
 # FIXED GLOBAL PARAMETERS
-N_SECTIONS      = 20    # [º]       - number of cross-sections of the combustion chamber - simulation resolution
+N_SECTIONS      = 1    # [º]       - number of cross-sections of the combustion chamber - simulation resolution
 
 # COOLANT PARAMETERS
 INLET_T         = 200   # [K]       - inlet temperature coolant
 INLET_p         = 130   # [bar]     - inlet pressure coolant
-MDOT_COOLANT    = 0.1   # [kg/s]    - mass flow rate of the coolant
+MDOT_COOLANT    = 80    # [kg/s]    - mass flow rate of the coolant
 
 # MATERIAL PARAMETERS
 THERMAL_K       = 385   # [W/mK]    - thermal conductivity of the material
@@ -20,7 +20,7 @@ FRICTION        = 0.01  # [-]       - friction factor
 N_CHANNELS      = 10    # [-]       - number of channels in the combustion chamber
 INTER_CHANNEL_T = 0.001 # [m]       - thickness of the wall separating the channels
 LENGHT_CC       = 0.5   # [m]       - length of the combustion chamber
-HEIHT_CHANNEL   = 0.1   # [m]       - height of the cooling channel
+HEIHT_CHANNEL   = 0.1  # [m]       - height of the cooling channel
 DI              = 0.1   # [m]       - inner diameter of the combustion chamber
 T               = 0.01  # [m]       - thickness of the wall separating the combustion chamber from the coolant circuit
 
@@ -57,10 +57,8 @@ class Solver (object):
 
         # Instantiate the sections
         self.sections = [None] * N_SECTIONS
-        self.sections[0] = Section(self.cc.Di_nsection[0]) 
-
-        for i in range (1, N_SECTIONS):
-            self.sections[i] = Section(self.cc.Di_nsection[i], self.sections[i-1])
+        for i in range (0, N_SECTIONS):
+            self.sections[i] = Section(self.cc.Di_nsection[i])
 
 
     # Solve the problem
@@ -85,6 +83,11 @@ class Solver (object):
 
         s = self.sections[n] # [º] - number of the section
         i = 0                # [-] - iteration counter
+
+        if n > 0: 
+            s.set_inlet_state(self.sections[n-1].T_out, self.sections[n-1].p_out)
+        else:
+            s.set_inlet_state(INLET_T, INLET_p)
 
         # Initial assumptions
         s.T_out   = s.T_in + 10             # [K]   - initial guess for the outlet temperature
@@ -120,12 +123,13 @@ class Solver (object):
             T_ = 0.5 * (s.T_out + s.T_in)           # average temperature in the section            
             s.update_thermal_properties(T_, p_)     # [K], [Pa] - temperature, pressure - update the thermal properties of the coolant
 
+            s.v = s.get_velocity_coolant()          # [m/s] - velocity of the coolant in the section
             self.update_all_convection_coefficients_section(s.T_wi_, s.T_wo_, n)
             R_co, R_cc, R_w = s.get_ohmic_thermal_equivalences()
 
             # Heat transfer rate analysis - ohmic resistance + cp method
             q           = (self.cc.T_gas - T_) / (R_co + R_cc + R_w)    # [W/m] - specific heat transfer rate
-            Q           = q * s.dx * (pi * (s.Di + 2*s.t))              # [W]   - total heat transfer rate
+            Q           = q * s.dx * pi * (s.Di + 2*s.t)                # [W]   - total heat transfer rate
             s.T_out     = s.T_in + s.mdot / (s.cp * Q)                  # [K]   - outlet temperature via the cp method
 
             # Save the ohmic resistance and the specific heat transfer rate
@@ -133,6 +137,9 @@ class Solver (object):
             s.R_cc = R_cc
             s.R_w  = R_w
             s.Q    = Q
+
+            print("--------------------------------------------")
+            s.debug()
 
             # Check other assumptions (wall temperature update)
             s.get_section_temperatures(self.cc.T_gas)           # [K]   - get the wall temperatures - inner and outer
@@ -201,26 +208,10 @@ class Section (object):
     f       = None  # [-]       - friction factor
     h       = None  # [m]       - height of the cooling channel
 
-    gas = pm.get('ig.CH4') # [pyromat] - gas in the combustion chamber
 
-
-    def __init__ (self, Di, previous_section = None) -> None:
-        
-        # find gas in pyromat
-        self.pre_section = previous_section     # section before this one.
-        
-        # NOTE: If a previous section is provided then override the values, if not use CC_INLET conditions
-        if self.pre_section:        
-            self.T_in   = self.pre_section.T_out
-            self.p_in   = self.pre_section.p_out
-
-        # INLET conditions
-        else:
-            self.T_in   = INLET_T # global variable
-            self.p_in   = INLET_p # global variable
+    def __init__ (self, Di) -> None:
 
         # Filled-in after execution
-
         self.cp     = 0 # [J/kgK]   - specific heat capacity of the coolant
         self.mu     = 0 # [Pa s]    - dynamic viscosity of the coolant
         self.k      = 0 # [W/mK]    - thermal conductivity of the coolant
@@ -236,13 +227,42 @@ class Section (object):
 
         self.v      = 0 # [m/s]     - velocity
 
-        self.p_out  = self.p_in   # [Pa]  - outlet pressure
-        self.T_out  = self.T_in   # [K]   - outlet temperature
-
         self.T_wi_  = 0 # [K]       - temperature of the inner wall of the combustion chamber
         self.T_wo_  = 0 # [K]       - temperature of the outer wall of the combustion chamber
 
         self.Di     = Di # [m]       - inner diameter of the combustion chamber
+
+
+    # Set Inlet State
+    def set_inlet_state (self, T_in, p_in):
+
+        self.T_in   = T_in
+        self.p_in   = p_in
+
+        # boot start solver
+        self.p_out  = self.p_in   # [Pa]  - outlet pressure
+        self.T_out  = self.T_in   # [K]   - outlet temperature
+
+
+    # print all attributes of the class
+    def debug (self):
+
+        print("Di: ", self.Di)
+        print("cp: ", self.cp)
+        print("mu: ", self.mu)
+        print("k: ", self.k)
+        print("rho: ", self.rho)
+        print("R_co: ", self.R_co)
+        print("R_cc: ", self.R_cc)
+        print("R_w: ", self.R_w)
+        print("Q: ", self.Q)
+        print("h_cc: ", self.h_cc)
+        print("h_co: ", self.h_co)
+        print("v: ", self.v)
+        print("p_out: ", self.p_out)
+        print("T_out: ", self.T_out)
+        print("T_wi_: ", self.T_wi_)
+        print("T_wo_: ", self.T_wo_)
 
 
     # Get ohmic equivalent thermal resistances
@@ -343,10 +363,10 @@ def get_interpolation_function_for_mu_and_rho ():
     data_coolant_k      = pd.read_csv("conf/coolant_k.csv", header=0).to_numpy()    # T, p, k
     data_coolant_rho    = pd.read_csv("conf/coolant_rho.csv", header=0).to_numpy()  # T, p, rho
 
-    FUNCTION_CP  = interp1d(data_coolant_cp[:, 0], data_coolant_cp[:, 1])
-    FUNCTION_MU  = LinearNDInterpolator(data_coolant_mu[:, 0:2], data_coolant_mu[:, 2])
-    FUNCTION_K   = LinearNDInterpolator(data_coolant_k[:, 0:2], data_coolant_k[:, 2])
-    FUNCTION_RHO = LinearNDInterpolator(data_coolant_rho[:, 0:2], data_coolant_rho[:, 2])
+    FUNCTION_CP  = interp1d(data_coolant_cp[:, 0], data_coolant_cp[:, 1], fill_value=6.95)
+    FUNCTION_MU  = LinearNDInterpolator(data_coolant_mu[:, 0:2], data_coolant_mu[:, 2], fill_value=15)
+    FUNCTION_K   = LinearNDInterpolator(data_coolant_k[:, 0:2], data_coolant_k[:, 2], fill_value=50)
+    FUNCTION_RHO = LinearNDInterpolator(data_coolant_rho[:, 0:2], data_coolant_rho[:, 2], fill_value=9.24)
 
     return 0
 
