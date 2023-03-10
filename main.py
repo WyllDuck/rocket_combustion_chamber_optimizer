@@ -15,6 +15,8 @@ def main ():
     plot_temperature(solver)
     plot_pressure(solver)
     plot_velocity(solver)
+    plot_heat_flux(solver)
+    plot_heat_flux_cc(solver)
     
 
 if __name__ == "__main__":

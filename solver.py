@@ -15,8 +15,11 @@ class Solver (object):
 
     def __init__(self) -> None:
         
-        self.cc         = CombustionChamber(THERMAL_PARA_HOT_GASES, [DI] * N_SECTIONS)
-        
+        """ Combustion chamber parameters """
+        self.cc         = CombustionChamber([DI] * N_SECTIONS)
+        self.cc.v_gas   = self.cc.get_velocity_hot_gases()      # [m/s] - velocity of the hot-gas inside the combustion chamber
+
+
         """ Section parameters """
         Section.dx      = LENGHT_CC / N_SECTIONS    # [m]       - length of each cross-section (all sections have the same length)
         Section.mdot    = MDOT_COOLANT              # [kg/s]    - mass flow rate (all sections have the same mass flow rate)
@@ -110,11 +113,10 @@ class Solver (object):
             R_co, R_cc, R_w = s.get_ohmic_thermal_equivalences()
 
             # Heat transfer rate analysis - ohmic resistance + cp method
-            q           = (self.cc.T_gas - T_) / (R_co + R_cc + R_w)    # [W/m] - specific heat transfer rate
-            Q           = q * s.dx * pi * (s.Di + 2*s.t)                # [W]   - total heat transfer rate
+            Q           = (self.cc.T_gas - T_) / (R_co + R_cc + R_w)    # [W]   - heat transfer rate
             s.T_out     = s.T_in + Q / (s.cp * s.mdot)                  # [K]   - outlet temperature via the cp method
 
-            # Save the ohmic resistance and the specific heat transfer rate
+            # Save the ohmic resistance and the heat transfer rate
             s.R_co = R_co
             s.R_cc = R_cc
             s.R_w  = R_w

@@ -49,3 +49,33 @@ def plot_velocity (solver):
     
     plt.legend()
     plt.show()
+
+
+def plot_heat_flux (solver):
+    
+    Q = np.zeros(N_SECTIONS)
+    dx_ = np.linspace(0, LENGHT_CC, N_SECTIONS)
+
+    for i in range(N_SECTIONS):
+        Q[i] = solver.sections[i].Q
+
+    plt.plot(dx_, Q, label="Q")
+    
+    plt.legend()
+    plt.show()
+
+
+def plot_heat_flux_cc (solver):
+    
+    h = np.zeros([N_SECTIONS, 2])
+    dx_ = np.linspace(0, LENGHT_CC, N_SECTIONS)
+
+    for i in range(N_SECTIONS):
+        h[i, 0] = solver.sections[i].h_cc
+        h[i, 1] = solver.sections[i].h_co
+
+    plt.plot(dx_, h[:, 0], label="h_cc")
+    plt.plot(dx_, h[:, 1], label="h_co")
+    
+    plt.legend()
+    plt.show()

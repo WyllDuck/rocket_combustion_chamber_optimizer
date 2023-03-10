@@ -112,16 +112,15 @@ class Section (object):
     # Get ohmic equivalent thermal resistances
     def get_ohmic_thermal_equivalences (self):
 
-        R_co = 1 / (self.h_co * (self.Di + 2*self.t) * pi)                # [K/W] - thermal resistance of the coolant circuit
-        R_cc = 1 / (self.h_cc * (self.Di) * pi)                         # [K/W] - thermal resistance of the combustion chamber
-        R_w  = log((self.Di + 2*self.t) / self.Di) / (2*pi*THERMAL_K)     # [K/W] - thermal resistance of the wall
+        R_co = 1 / (self.h_co * (self.Di + 2*self.t) * pi * self.dx)                    # [K/W] - thermal resistance of the coolant circuit
+        R_cc = 1 / (self.h_cc * (self.Di) * pi * self.dx)                               # [K/W] - thermal resistance of the combustion chamber
+        R_w  = log((self.Di + 2*self.t) / self.Di) / (2*pi*THERMAL_K*self.dx)           # [K/W] - thermal resistance of the wall
 
         return R_co, R_cc, R_w
 
 
     # Get the velocity of the coolant in the channels        
     def get_velocity_coolant (self):
-
         """
         Returns the avergare velocity of the coolant in the channels for this section.
         --------------------------------
