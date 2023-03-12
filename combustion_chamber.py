@@ -8,25 +8,74 @@ from conf import *
 """ COMBUSTION CHAMBER CLASS """
 class CombustionChamber (object):
 
+    # Gas Thermal Properties
+    # from injection plate to combustion chamber throat
+    function_T_cc            = None      # [K]       - temperature of the hot gas inside the combustion chamber
+    function_cp_cc           = None      # [J/kgK]   - specific heat capacity of the gas inside the combustion chamber
+    function_mu_cc           = None      # [Pa s]    - dynamic viscosity of the gas inside the combustion chamber
+    function_k_cc            = None      # [W/mK]    - thermal conductivity of the gas inside the combustion chamber
+    function_rho_cc          = None      # [kg/m3]   - density of the gas inside the combustion chamber
+    function_gamma_cc        = None      # [-]       - specific heat ratio of the gas inside the combustion chamber
+    function_c_cc            = None      # [m/s]     - speed of sound of the gas inside the combustion chamber
+    
+    # from combustion chamber throat to nozzle exit
+    function_T_nozzle        = None      # [K]       - temperature of the hot gas at the nozzle positions of the combustion chamber
+    function_cp_nozzle       = None      # [J/kgK]   - specific heat capacity of the gas at the nozzle positions of the combustion chamber
+    function_mu_nozzle       = None      # [Pa s]    - dynamic viscosity of the gas at the nozzle positions of the combustion chamber
+    function_k_nozzle        = None      # [W/mK]    - thermal conductivity of the gas at the nozzle positions of the combustion chamber
+    function_rho_nozzle      = None      # [kg/m3]   - density of the gas at the nozzle positions of the combustion chamber
+    function_gamma_nozzle    = None      # [-]       - specific heat ratio of the gas at the nozzle positions of the combustion chamber
+    function_c_nozzle        = None      # [m/s]     - speed of sound of the gas at the nozzle positions of the combustion chamber
+
+
     def __init__ (self, Di_nsection) -> None:
         
-        self.Di_nsection = Di_nsection # [m] - inner diameter of the combustion chamber for each section
-
-        # Hot-gas properties
-        self.mdot       = MDOT              # [kg/s]    - mass flow rate of the hot-gas inside the combustion chamber
-        
-        self.T_gas      = HOT_GAS_T_CC      # [K]       - temperature of the hot gas
-        self.cp_gas     = HOT_GAS_CP_CC     # [J/kgK]   - specific heat capacity of the gas
-        self.mu_gas     = HOT_GAS_MU_CC     # [Pa s]    - dynamic viscosity of the gas
-        self.k_gas      = HOT_GAS_K_CC      # [W/mK]    - thermal conductivity of the gas
-        self.rho_gas    = HOT_GAS_RHO_CC    # [kg/m3]   - density of the gas
-        self.gamma_gas  = HOT_GAMMA_CC      # [-]       - specific heat ratio of the gas
-        self.c_gas      = HOT_SON_V_CC      # [m/s]     - speed of sound of the gas
-        
-
+        self.Di_nsection    = Di_nsection       # f(x) [m] - inner diameter of the combustion chamber for each section based on CC position
+        self.mdot           = MDOT              # [kg/s]    - mass flow rate of the hot-gas inside the combustion chamber
+    
         # filled-in after execution
-        self.v_gas      = None              # [m/s]     - velocity of the gas
+        self.v_gas          = None              # [m/s]     - velocity of the gas
+
+        # Gas Thermal Properties
+        self.T_gas          =  None      # [K]       - temperature of the hot gas inside the combustion chamber
+        self.cp_gas         =  None      # [J/kgK]   - specific heat capacity of the gas inside the combustion chamber
+        self.mu_gas         =  None      # [Pa s]    - dynamic viscosity of the gas inside the combustion chamber
+        self.k_gas          =  None      # [W/mK]    - thermal conductivity of the gas inside the combustion chamber
+        self.rho_gas        =  None      # [kg/m3]   - density of the gas inside the combustion chamber
+        self.gamma_gas      =  None      # [-]       - specific heat ratio of the gas inside the combustion chamber
+        self.c_gas          =  None      # [m/s]     - speed of sound of the gas inside the combustion chamber
       
+
+    def get_thermal_properties_gas (self, region, exp_ratio):
+        """ 
+        Returns the thermal properties of the hot-gas inside the combustion chamber
+        --------------------------------
+        in: 
+            - region:       boolean value indicating the region of study: inside the combustion chamber or at the nozzle exit (1, 2)
+            - exp_ratio:    expansion ratio
+        out:
+            -
+        """
+        
+        # NOTE: UNITS NEED TO BE CONVERTED TO SI UNITS
+        if region == 1:
+            self.T_gas      = self.function_T_cc(exp_ratio)
+            self.cp_gas     = self.function_cp_cc(exp_ratio)    * 1e3
+            self.mu_gas     = self.function_mu_cc(exp_ratio)    * 1e-4
+            self.k_gas      = self.function_k_cc(exp_ratio)     * 1e-1
+            self.rho_gas    = self.function_rho_cc(exp_ratio)
+            self.gamma_gas  = self.function_gamma_cc(exp_ratio)
+            self.c_gas      = self.function_c_cc(exp_ratio)
+
+        elif region == 2:
+            self.T_gas      = self.function_T_nozzle(exp_ratio)
+            self.cp_gas     = self.function_cp_nozzle(exp_ratio)    * 1e3
+            self.mu_gas     = self.function_mu_nozzle(exp_ratio)    * 1e-4
+            self.k_gas      = self.function_k_nozzle(exp_ratio)     * 1e-1
+            self.rho_gas    = self.function_rho_nozzle(exp_ratio)
+            self.gamma_gas  = self.function_gamma_nozzle(exp_ratio)
+            self.c_gas      = self.function_c_nozzle(exp_ratio)
+        
 
     def get_velocity_hot_gases (self):
         """ 

@@ -16,12 +16,32 @@ class Solver (object):
     def __init__(self) -> None:
         
         """ Combustion chamber parameters """
-        self.cc         = CombustionChamber([DI] * N_SECTIONS)
-        self.cc.v_gas   = self.cc.get_velocity_hot_gases()      # [m/s] - velocity of the hot-gas inside the combustion chamber
 
+        functions_cc, functions_nozzle = get_interpolation_function_gas_properties()
+
+        function_T, function_cp, function_mu, function_k, function_rho, function_gamma, function_c = functions_cc
+
+        CombustionChamber.function_T_cc     = function_T   
+        CombustionChamber.function_cp_cc    = function_cp
+        CombustionChamber.function_mu_cc    = function_mu
+        CombustionChamber.function_k_cc     = function_k
+        CombustionChamber.function_rho_cc   = function_rho
+        CombustionChamber.function_gamma_cc = function_gamma
+        CombustionChamber.function_c_cc     = function_c
+
+        function_T, function_cp, function_mu, function_k, function_rho, function_gamma, function_c = functions_nozzle
+
+        CombustionChamber.function_T_nozzle     = function_T
+        CombustionChamber.function_cp_nozzle    = function_cp
+        CombustionChamber.function_mu_nozzle    = function_mu
+        CombustionChamber.function_k_nozzle     = function_k
+        CombustionChamber.function_rho_nozzle   = function_rho
+        CombustionChamber.function_gamma_nozzle = function_gamma
+        CombustionChamber.function_c_nozzle     = function_c
+
+        self.cc         = CombustionChamber([DI_CC] * N_SECTIONS)
 
         """ Section parameters """
-        Section.dx      = LENGHT_CC / N_SECTIONS    # [m]       - length of each cross-section (all sections have the same length)
         Section.mdot    = MDOT_COOLANT              # [kg/s]    - mass flow rate (all sections have the same mass flow rate)
         Section.n       = N_CHANNELS                # [º]       - number of channels (all sections have the same number of channels)
         Section.t2      = INTER_CHANNEL_T           # [m]       - wall thickness (channels separating wall)
@@ -41,7 +61,7 @@ class Solver (object):
         # Instantiate the sections
         self.sections = [None] * N_SECTIONS
         for i in range (0, N_SECTIONS):
-            self.sections[i] = Section(self.cc.Di_nsection[i])
+            self.sections[i] = Section(self.cc.Di_nsection[i], LENGHT_CC/N_SECTIONS, 1)
 
 
     # Solve the problem
@@ -64,8 +84,9 @@ class Solver (object):
     # Function execute the analysis of the section - find outlet state of the section
     def solve_section (self, n): # [º] - number of the section
 
-        s = self.sections[n] # [º] - number of the section
-        i = 0                # [-] - iteration counter
+        s = self.sections[n]                # [º] - number of the section
+        region = self.sections[n].region    # [-] - region of the section
+        i = 0                               # [-] - iteration counter
 
         if n > 0: 
             s.set_inlet_state(self.sections[n-1].T_out, self.sections[n-1].p_out)
@@ -91,6 +112,10 @@ class Solver (object):
         T_ = 0.5 * (s.T_out + s.T_in)           # average temperature in the section            
         s.update_thermal_properties(T_, p_)     # [K], [Pa] - temperature, pressure - update the thermal properties of the coolant
 
+        # Set the cc thermal properties for the section
+        exp_ratio = pow(s.Di, 2) / pow(DI_TH, 2)
+        self.cc.get_thermal_properties_gas(region, exp_ratio)
+        self.cc.v_gas   = self.cc.get_velocity_hot_gases()      # [m/s] - velocity of the hot-gas inside the combustion chamber
 
         # Iterate until the exit temperature is found
         while sum(self.check_assumptions_section(n, (T_out_assumption, T_wi_assumption, T_wo_assumption, p_out_assumption))) > 1e-3:

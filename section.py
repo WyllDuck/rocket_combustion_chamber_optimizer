@@ -9,7 +9,6 @@ from conf import *
 class Section (object):
 
     # NOTE: These parameters are shared by all sections
-    dx      = None  # [m]       - length of each cross-section
     mdot    = None  # [kg/s]    - mass flow rate - per section (not channel!)
     n       = None  # [º]       - number of channels
     t2      = None  # [m]       - wall thickness (channels separating wall)
@@ -24,7 +23,7 @@ class Section (object):
     function_rho    = None
 
 
-    def __init__ (self, Di) -> None:
+    def __init__ (self, Di, dx, region) -> None:
 
         # Filled-in after execution
         self.cp     = 0 # [J/kgK]   - specific heat capacity of the coolant
@@ -45,7 +44,9 @@ class Section (object):
         self.T_wi_  = 0 # [K]       - temperature of the inner wall of the combustion chamber
         self.T_wo_  = 0 # [K]       - temperature of the outer wall of the combustion chamber
 
-        self.Di     = Di # [m]       - inner diameter of the combustion chamber
+        self.Di     = Di        # [m]   - inner diameter of the combustion chamber
+        self.dx     = dx        # [m]   - length of the cross-section
+        self.region = region    # [-]   - region of the rocket engine, inside the CC or in the nozzle
 
 
     # Set Inlet State
@@ -99,7 +100,6 @@ class Section (object):
     def print_class_values():
 
         print("--- class values ---")
-        print("dx: \t", Section.dx)
         print("mdot: \t", Section.mdot)
         print("n: \t", Section.n)
         print("t2: \t", Section.t2)
