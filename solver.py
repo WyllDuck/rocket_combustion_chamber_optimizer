@@ -67,6 +67,9 @@ class Solver (object):
     # Solve the problem
     def solve (self):
         for i in range (N_SECTIONS):
+            if not self.sections[i].validate_geometry():
+                print("INVALID GEOMETRY")
+                break
             self.solve_section(i)
 
 
@@ -89,9 +92,11 @@ class Solver (object):
         i = 0                               # [-] - iteration counter
 
         if n > 0: 
-            s.set_inlet_state(self.sections[n-1].T_out, self.sections[n-1].p_out)
+            s.set_inlet_state(self.sections[n-1].T_out, self.sections[n-1].p_out, self.sections[n-1])
         else:
             s.set_inlet_state(INLET_T, INLET_p)
+
+        s.Dh = s.get_hydraulic_diameter()   # [m] - hydraulic diameter of the section
 
         # Initial assumptions
         s.T_out   = s.T_in + 10             # [K]   - initial guess for the outlet temperature

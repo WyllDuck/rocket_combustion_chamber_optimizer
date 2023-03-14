@@ -1,5 +1,5 @@
 # Tools
-from math import pi, log
+from math import pi, log, sqrt, tanh
 
 # Global variables
 from conf import *
@@ -44,13 +44,34 @@ class Section (object):
         self.T_wi_  = 0 # [K]       - temperature of the inner wall of the combustion chamber
         self.T_wo_  = 0 # [K]       - temperature of the outer wall of the combustion chamber
 
+        self.Dh     = 0         # [m]   - hydraulic diameter of the cooling channels
         self.Di     = Di        # [m]   - inner diameter of the combustion chamber
         self.dx     = dx        # [m]   - length of the cross-section
         self.region = region    # [-]   - region of the rocket engine, inside the CC or in the nozzle
 
 
+    # Get the hydraulic diameter of the coolant circuit
+    def get_hydraulic_diameter (self):
+        
+        # Area of the coolant circuit cross-section
+        e = self.t2 * self.h * self.n                                                       # [m2] - area lost to channel separation walls
+        At = pi/4 * (pow(self.Di + 2*(self.h + self.t), 2) - pow(self.Di + 2*self.t, 2))    # [m2] - cross-sectional area of the coolant circuit
+        A = (At - e)/self.n                                                                 # [m2] - subtract the area lost to channel separation walls + divide by number of cooling channels
+
+        Pi = (pi*(self.Di + 2*self.t) - self.n*self.t2)/self.n                              # [m]  - length edge inner perimeter of the coolant channel
+        Po = (pi*(self.Di + 2*(self.h + self.t)) - self.n*self.t2)/self.n                   # [m]  - length edge outer perimeter of the coolant channel
+        P = Pi + Po + 2*self.h                                                              # [m]  - total perimeter of the coolant channel
+
+        return 4*A/P
+
+
     # Set Inlet State
-    def set_inlet_state (self, T_in, p_in):
+    def set_inlet_state (self, T_in, p_in, previous_section = None):
+
+        # Set initial assumptions for wall temperatures - speeds up the solver
+        if previous_section is not None:
+            self.T_wi_  = previous_section.T_wi_
+            self.T_wo_  = previous_section.T_wo_
 
         self.T_in   = T_in
         self.p_in   = p_in
@@ -58,6 +79,11 @@ class Section (object):
         # boot start solver
         self.p_out  = self.p_in   # [Pa]  - outlet pressure
         self.T_out  = self.T_in   # [K]   - outlet temperature
+
+
+    # Check if the geometry is valid
+    def validate_geometry (self):
+        return self.n * self.t2 < pow(self.Di + 2*self.t, 2) * pi / 4
 
 
     # print all instance values
@@ -86,6 +112,7 @@ class Section (object):
         print("p_out: \t", self.p_out)
         print("Q: \t", self.Q)
         print("Di: \t", self.Di)
+        print("Dh: \t", self.Dh)
         print()
 
         print("--- temperatures ---")
@@ -116,6 +143,18 @@ class Section (object):
         R_cc = 1 / (self.h_cc * (self.Di) * pi * self.dx)                               # [K/W] - thermal resistance of the combustion chamber
         R_w  = log((self.Di + 2*self.t) / self.Di) / (2*pi*THERMAL_K*self.dx)           # [K/W] - thermal resistance of the wall
 
+        m   = sqrt((self.h_co * (2*self.h))/(self.k * (self.t2*self.h)))
+        eff = tanh(m*self.h) / (m*self.h)
+        Af  = self.h * self.dx * 2
+        R_f = 1 / (eff * Af * self.h_co)
+
+        print("eff: ", eff)
+        print("m: ", m)
+
+        print("R_co: ", R_co)
+        R_co = pow((self.n/R_f + 1/R_co), -1)
+        print("R_co: ", R_co)
+
         return R_co, R_cc, R_w
 
 
@@ -131,7 +170,7 @@ class Section (object):
         """
 
         # Area of the coolant circuit cross-section
-        e = self.t2 * self.h * (self.n-1)                                               # [m2] - area lost to channel separation walls
+        e = self.t2 * self.h * self.n                                                   # [m2] - area lost to channel separation walls
         A = pi/4 * (pow(self.Di + 2*(self.h + self.t), 2) - pow(self.Di + 2*self.t, 2)) # [m2] - cross-sectional area of the coolant circuit
 
         return self.mdot / ((A-e) * self.rho) # [m/s] - average velocity of the coolant in the channels for this section
@@ -148,11 +187,11 @@ class Section (object):
             h: [W/m2K] - convection coefficient of the coolant inside the coolant circuit
         """
         
-        Re = self.rho * self.v * self.Di / self.mu
+        Re = self.rho * self.v * self.Dh / self.mu
         Pr = self.cp * self.mu / self.k
         Nu = 0.023 * pow(Re, 0.8) * pow(Pr, 0.4) * pow(0.5*(self.T_in+self.T_out) / T_wo, 0.57)
 
-        return self.k * Nu / self.Di # hot-gas convection coefficient
+        return self.k * Nu / self.Dh # hot-gas convection coefficient
 
 
     # Update the thermal properties of the coolant
@@ -175,7 +214,7 @@ class Section (object):
             dp: [Pa] - pressure loss in the coolant circuit for this section
         """
         
-        return self.f * (self.rho * pow(self.v, 2) / 2) * self.dx / self.h  # [Pa] - pressure loss in the coolant circuit for this section
+        return self.f * (self.rho * pow(self.v, 2) / 2) * self.dx / self.Dh  # [Pa] - pressure loss in the coolant circuit for this section
     
 
     # Get the temperature of the inner and outer walls of the combustion chamber, and the inlet and outlet of the coolant circuit
