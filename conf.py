@@ -1,8 +1,8 @@
 """ GLOBAL PARAMETERS """
 
 # COOLANT PARAMETERS
-INLET_T         = 200       # [K]       - inlet temperature coolant
-INLET_p         = 125       # [bar]     - inlet pressure coolant
+INLET_T         = 500       # [K]       - inlet temperature coolant
+INLET_P         = 125       # [bar]     - inlet pressure coolant
 MDOT            = 324       # [kg/s]    - mass flow rate of hot gas
 OF_RATIO        = 3.6       # [-]       - oxygen to fuel ratio
 

@@ -24,7 +24,7 @@ def main ():
     """
     data = get_data("geo/2ndStage_eps150_Ma4_678_gamma_1_1982_contour.txt") * DI_TH / 2 # Dimensionalize the data
 
-    CUT_NOZZLE_R = 0.25
+    CUT_NOZZLE_R = 0.8 #0.25
     for i in range(len(data)):
         if (data[i, 1] - CUT_NOZZLE_R) > 0:
             break
@@ -52,7 +52,10 @@ def main ():
     """
     PLOT DATA
     """
-    plt.plot(data_final[:, 0], data_final[:, 1])
+    # plot using othorgonal axes
+    plt.axis('equal')
+    plt.plot(data_final[:, 0], data_final[:, 1], color='black')
+    plt.plot(data_final[:, 0], -data_final[:, 1], color='black')
     plt.show()
 
     # Save the data into a file 

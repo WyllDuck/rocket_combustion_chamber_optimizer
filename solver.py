@@ -98,7 +98,7 @@ class Solver (object):
         if n > 0: 
             s.set_inlet_state(self.sections[n-1].T_out, self.sections[n-1].p_out, self.sections[n-1])
         else:
-            s.set_inlet_state(INLET_T, INLET_p)
+            s.set_inlet_state(INLET_T, INLET_P)
 
         s.Dh = s.get_hydraulic_diameter()   # [m] - hydraulic diameter of the section
 
@@ -114,7 +114,6 @@ class Solver (object):
         p_out_assumption    = 0
 
         Section.print_class_values()
-        self.cc.print_instance_values()
 
         # booting the iteration with the initial assumptions
         p_ = 0.5 * (s.p_out + s.p_in)           # average pressure in the section
@@ -123,6 +122,7 @@ class Solver (object):
 
         # Set the cc thermal properties for the section
         exp_ratio = pow(s.Di, 2) / pow(DI_TH, 2)
+        print("exp_ratio = ", exp_ratio)
         self.cc.get_thermal_properties_gas(region, exp_ratio)
         self.cc.v_gas   = self.cc.get_velocity_hot_gases(s.Di)      # [m/s] - velocity of the hot-gas inside the combustion chamber
 
@@ -156,8 +156,10 @@ class Solver (object):
             s.R_w  = R_w
             s.Q    = Q
 
-            print("--------------------------------------------")
+            print("----------- SECTION -----------")
             s.print_instance_values()
+            print("----------- COMBUSTION CHAMBER -----------")
+            self.cc.print_instance_values()
 
             # Check other assumptions (wall temperature update)
             s.get_section_temperatures(self.cc.T_gas)           # [K]   - get the wall temperatures - inner and outer

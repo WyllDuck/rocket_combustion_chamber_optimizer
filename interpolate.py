@@ -1,7 +1,8 @@
 # Tools
 from scipy.interpolate import LinearNDInterpolator, interp1d
 import pandas as pd
-from math import pi
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Global variables
 from conf import *
@@ -20,10 +21,10 @@ def get_interpolation_function_coolant_properties ():
     data_coolant_k      = pd.read_csv("{}_k.csv".format(CONF_COOLANT_FILES), header=0).to_numpy()    # T, p, k
     data_coolant_rho    = pd.read_csv("{}_rho.csv".format(CONF_COOLANT_FILES), header=0).to_numpy()  # T, p, rho
 
-    function_cp  = interp1d(data_coolant_cp[:, 0], data_coolant_cp[:, 1], fill_value=6.95)
-    function_mu  = LinearNDInterpolator(data_coolant_mu[:, 0:2], data_coolant_mu[:, 2], fill_value=15)
-    function_k   = LinearNDInterpolator(data_coolant_k[:, 0:2], data_coolant_k[:, 2], fill_value=50)
-    function_rho = LinearNDInterpolator(data_coolant_rho[:, 0:2], data_coolant_rho[:, 2], fill_value=9.24)
+    function_cp  = interp1d(data_coolant_cp[:, 0], data_coolant_cp[:, 1])
+    function_mu  = LinearNDInterpolator(data_coolant_mu[:, 0:2], data_coolant_mu[:, 2])
+    function_k   = LinearNDInterpolator(data_coolant_k[:, 0:2], data_coolant_k[:, 2])
+    function_rho = LinearNDInterpolator(data_coolant_rho[:, 0:2], data_coolant_rho[:, 2])
 
     return function_cp, function_mu, function_k, function_rho
 
@@ -81,3 +82,43 @@ def get_interpolation_function_gas_properties ():
     functions_cc =  [function_T_cc, function_cp_cc, function_mu_cc, function_k_cc, function_rho_cc, function_gamma_cc, function_c_cc]
 
     return functions_cc, functions_nozzle
+
+
+def graph_interpolation_gas_properties ():
+
+    # Graph the interpolation functions
+
+    # Get the interpolation functions
+    functions_cc, functions_nozzle = get_interpolation_function_gas_properties()
+
+    # Create the x-axis
+    x_axis = np.linspace(2, 1, 100)
+
+    # Graph the gas properties
+    plt.figure()
+    plt.plot(x_axis, functions_cc[0](x_axis), label="T_cc")
+    plt.plot(x_axis, functions_cc[1](x_axis), label="cp_cc")
+    plt.plot(x_axis, functions_cc[2](x_axis), label="mu_cc")
+    plt.plot(x_axis, functions_cc[3](x_axis), label="k_cc")
+    plt.plot(x_axis, functions_cc[4](x_axis), label="rho_cc")
+    plt.plot(x_axis, functions_cc[5](x_axis), label="gamma_cc")
+    plt.plot(x_axis, functions_cc[6](x_axis), label="c_cc")
+    plt.legend()
+    plt.show()
+
+    x_axis = np.linspace(1, 70, 100)
+
+    plt.figure()
+    plt.plot(x_axis, functions_nozzle[0](x_axis), label="T_nozzle")
+    plt.plot(x_axis, functions_nozzle[1](x_axis), label="cp_nozzle")
+    plt.plot(x_axis, functions_nozzle[2](x_axis), label="mu_nozzle")
+    plt.plot(x_axis, functions_nozzle[3](x_axis), label="k_nozzle")
+    plt.plot(x_axis, functions_nozzle[4](x_axis), label="rho_nozzle")
+    plt.plot(x_axis, functions_nozzle[5](x_axis), label="gamma_nozzle")
+    plt.plot(x_axis, functions_nozzle[6](x_axis), label="c_nozzle")
+    plt.legend()
+    plt.show()
+
+
+if __name__ == "__main__":
+    graph_interpolation_gas_properties()
