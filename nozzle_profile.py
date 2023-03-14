@@ -23,6 +23,13 @@ def main ():
     NOZZLE EXTENSION
     """
     data = get_data("geo/2ndStage_eps150_Ma4_678_gamma_1_1982_contour.txt") * DI_TH / 2 # Dimensionalize the data
+
+    CUT_NOZZLE_R = 0.25
+    for i in range(len(data)):
+        if (data[i, 1] - CUT_NOZZLE_R) > 0:
+            break
+    data = data[:i+1, :]
+
     data[:, 0] = data[:, 0] + LENGHT_CC # move x axis to the end of the combustion chamber
 
     # Interpolate the data
@@ -50,7 +57,7 @@ def main ():
 
     # Save the data into a file 
     data_final[:, 1] = data_final[:, 1] * 2     # Radius is doubled because we need the diameter
-    np.savetxt(GEOMETRY_FILE, data_final, delimiter=',')
+    np.savetxt(GEOMETRY_FILE, data_final[::-1], delimiter=',')
 
 
 if __name__ == "__main__":

@@ -34,6 +34,9 @@ def plot_temperature (solver, save=False, filename="img/temperature.png"):
     plt.plot(x_, T[:, 1], label="T_wi_")
     plt.plot(x_, T[:, 2], label="T_wo_")
 
+    # plot horizontal line at MELTING_T
+    plt.axhline(y=MELTING_T, color='r', linestyle='--', label="Melting Temperature")
+
     plt.legend()
     if save:
         plt.savefig(filename)

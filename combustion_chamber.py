@@ -28,9 +28,8 @@ class CombustionChamber (object):
     function_c_nozzle        = None      # [m/s]     - speed of sound of the gas at the nozzle positions of the combustion chamber
 
 
-    def __init__ (self, Di_nsection) -> None:
+    def __init__ (self) -> None:
         
-        self.Di_nsection    = Di_nsection       # f(x) [m] - inner diameter of the combustion chamber for each section based on CC position
         self.mdot           = MDOT              # [kg/s]    - mass flow rate of the hot-gas inside the combustion chamber
     
         # filled-in after execution
@@ -77,18 +76,18 @@ class CombustionChamber (object):
             self.c_gas      = self.function_c_nozzle(exp_ratio)
         
 
-    def get_velocity_hot_gases (self):
+    def get_velocity_hot_gases (self, Di):
         """ 
         Returns the velocity of the hot-gas inside the combustion chamber
         --------------------------------
         in: 
-            -
+            - Di:           [m]     - inner diameter of the combustion chamber
         out:
-            v_gas:  [m/s]   - velocity of the hot-gas inside the combustion chamber
+            v_gas:          [m/s]   - velocity of the hot-gas inside the combustion chamber
         """
         
         # NOTE: The velocity is calculated for the last section because that is the injection plate section
-        v_gas = self.mdot / (self.rho_gas * pi * pow(self.Di_nsection[-1], 2) / 4)
+        v_gas = self.mdot / (self.rho_gas * pi * pow(Di, 2) / 4)
         return v_gas
     
 

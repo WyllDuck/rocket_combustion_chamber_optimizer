@@ -60,20 +60,12 @@ class Solver (object):
         # Open GEOMETRY file .csv and read the values
         data = np.loadtxt(GEOMETRY_FILE, delimiter=',')
 
-        Di_section = []                             # [m] - diameter of the section
-        self.sections = [None] * (len(data) - 1)    # [-] - list of sections
-
+        self.sections   = [None] * (len(data) - 1)    # [-] - list of sections
         for i in range (0, len(data) - 1):
-
-            # Average diameter of the section
-            Di_n = 0.5*(data[i,1]+data[i+1,1])
-            Di_section.append(Di_n)
-
-            # Instantiate the section
-            self.sections[i] = Section(Di_n, abs(data[i+1,0]-data[i,0]), data[i,2])
+            self.sections[i] = Section(0.5*(data[i,1]+data[i+1,1]), abs(data[i+1,0]-data[i,0]), data[i,2])
 
         # --- Instantiate the combustion chamber
-        self.cc         = CombustionChamber(Di_section)
+        self.cc         = CombustionChamber()
 
 
     # Solve the problem
@@ -132,7 +124,7 @@ class Solver (object):
         # Set the cc thermal properties for the section
         exp_ratio = pow(s.Di, 2) / pow(DI_TH, 2)
         self.cc.get_thermal_properties_gas(region, exp_ratio)
-        self.cc.v_gas   = self.cc.get_velocity_hot_gases()      # [m/s] - velocity of the hot-gas inside the combustion chamber
+        self.cc.v_gas   = self.cc.get_velocity_hot_gases(s.Di)      # [m/s] - velocity of the hot-gas inside the combustion chamber
 
         # Iterate until the exit temperature is found
         while sum(self.check_assumptions_section(n, (T_out_assumption, T_wi_assumption, T_wo_assumption, p_out_assumption))) > 1e-3:
