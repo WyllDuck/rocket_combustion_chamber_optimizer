@@ -1,5 +1,5 @@
 # Tools
-from math import pi
+import numpy as np
 
 # Other files
 from section import Section
@@ -39,8 +39,6 @@ class Solver (object):
         CombustionChamber.function_gamma_nozzle = function_gamma
         CombustionChamber.function_c_nozzle     = function_c
 
-        self.cc         = CombustionChamber([DI_CC] * N_SECTIONS)
-
         """ Section parameters """
         Section.mdot    = MDOT_COOLANT              # [kg/s]    - mass flow rate (all sections have the same mass flow rate)
         Section.n       = N_CHANNELS                # [º]       - number of channels (all sections have the same number of channels)
@@ -58,15 +56,29 @@ class Solver (object):
         Section.function_rho    = function_rho
 
 
-        # Instantiate the sections
-        self.sections = [None] * N_SECTIONS
-        for i in range (0, N_SECTIONS):
-            self.sections[i] = Section(self.cc.Di_nsection[i], LENGHT_CC/N_SECTIONS, 1)
+        # --- Instantiate the sections
+        # Open GEOMETRY file .csv and read the values
+        data = np.loadtxt(GEOMETRY_FILE, delimiter=',')
+
+        Di_section = []                             # [m] - diameter of the section
+        self.sections = [None] * (len(data) - 1)    # [-] - list of sections
+
+        for i in range (0, len(data) - 1):
+
+            # Average diameter of the section
+            Di_n = 0.5*(data[i,1]+data[i+1,1])
+            Di_section.append(Di_n)
+
+            # Instantiate the section
+            self.sections[i] = Section(Di_n, abs(data[i+1,0]-data[i,0]), data[i,2])
+
+        # --- Instantiate the combustion chamber
+        self.cc         = CombustionChamber(Di_section)
 
 
     # Solve the problem
     def solve (self):
-        for i in range (N_SECTIONS):
+        for i in range (len(self.sections)):
             if not self.sections[i].validate_geometry():
                 print("INVALID GEOMETRY")
                 break

@@ -12,11 +12,11 @@ def main ():
     solver = Solver()
     solver.solve()
 
-    plot_temperature(solver)
-    plot_pressure(solver)
-    plot_velocity(solver)
-    plot_heat_flux(solver)
-    plot_heat_flux_cc(solver)
+    plot_temperature(solver, save=True)
+    plot_pressure(solver, save=True)
+    plot_velocity(solver, save=True)
+    plot_heat_flux(solver, save=True)
+    plot_heat_flux_cc(solver, save=True)
     
 
 if __name__ == "__main__":
