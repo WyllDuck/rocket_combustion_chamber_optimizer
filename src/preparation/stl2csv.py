@@ -4,12 +4,18 @@ from stl import mesh
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
+import sys
+import os
+
+dir_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
+sys.path.append(dir_path)
+
 # Global variables
 from conf import *
 
 
 # Using an existing stl file:
-your_mesh = mesh.Mesh.from_file('stage_1.stl')
+your_mesh = mesh.Mesh.from_file('stl\stage_1.stl')
 your_mesh.points /= 1000 # convert to meters
 
 # stage 1
@@ -39,7 +45,6 @@ for x_ in x:
 
     if x_ == 0:
         print ("throat D: {}".format(y_max * 2))
-
 
     if y_max < 0:
         continue

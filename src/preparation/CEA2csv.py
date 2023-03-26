@@ -1,6 +1,12 @@
 # TOOLS
 import numpy as np
 
+import sys
+import os
+
+dir_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
+sys.path.append(dir_path)
+
 # Global variables
 from conf import *
 

@@ -23,8 +23,6 @@ MELTING_T       = 1357      # [K]       - melting temperature of the material - 
 N_CHANNELS          = 200       # [-]       - number of channels in the combustion chamber
 INTER_CHANNEL_T     = 0.001     # [m]       - thickness of the wall separating the channels
 HEIHT_CHANNEL       = 0.01      # [m]       - height of the cooling channel
-DI_CC               = 0.434405  # [m]       - inner diameter of the combustion chamber injection plate
-DI_TH               = 0.2410    # [m]       - inner diameter of the combustion chamber throat
 T                   = 0.005     # [m]       - thickness of the wall separating the combustion chamber from the coolant circuit
 
 # INITIAL ASSUMPTIONS
@@ -35,8 +33,9 @@ T_WO_INIT_ASSUMPTION = 1200 # [K] - initial temperature assumption for outer com
 CONF_COOLANT_FILES = "conf/coolant"
 CONF_GAS_FILES     = "conf/gas"
 GEOMETRY_FILE      = "geo/geometry.csv"
-
 #CEA_FILES           = ["CEA/CH4 gaseous OF3_6 transport properties.txt", "C:/Users/marti/Desktop/rocket propulsion/rocket_combustion_chamber_optimizer/CEA/CH4 gaseous OF3_6 transport properties close to throat.txt"]
 CEA_FILES           = ["CEA/CH4 gaseous OFvary transport properties.txt", "CEA/CH4_2.0_expansion_big.txt"]
 
-# EUHAUST = 6.1 bar
+# SET THIS VALUES BASED ON GEOMETRY FILE
+DI_CC               = 0.434405  # [m]       - inner diameter of the combustion chamber injection plate
+DI_TH               = 0.2410    # [m]       - inner diameter of the combustion chamber throat
