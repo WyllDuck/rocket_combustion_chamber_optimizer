@@ -62,6 +62,8 @@ class Section (object):
         Po = (pi*(self.Di + 2*(self.h + self.t)) - self.n*self.t2)/self.n                   # [m]  - length edge outer perimeter of the coolant channel
         P = Pi + Po + 2*self.h                                                              # [m]  - total perimeter of the coolant channel
 
+        print("AR_channel: \t", HEIHT_CHANNEL/(0.5*(Pi+Po)))
+
         return 4*A/P
 
 
@@ -83,7 +85,7 @@ class Section (object):
 
     # Check if the geometry is valid
     def validate_geometry (self):
-        return self.n * self.t2 < pow(self.Di + 2*self.t, 2) * pi / 4
+        return self.n * self.t2 < (self.Di + 2*self.t) * pi
 
 
     # print all instance values
@@ -113,6 +115,7 @@ class Section (object):
         print("Q: \t", self.Q)
         print("Di: \t", self.Di)
         print("Dh: \t", self.Dh)
+        print("region: \t", self.region)
         print()
 
         print("--- temperatures ---")
@@ -135,17 +138,35 @@ class Section (object):
         print("h: \t", Section.h)
         print()
 
+    def get_areas_and_perimeters_heat_transfer (self):
+            
+        Pwi = self.Di*pi                                            # [m]  - inner perimeter combustion chamber
+        Pwo = (self.Di + 2*self.t) * pi - self.n * self.t2          # [m]  - interface wall perimeter from the coolant circuit with combustion chamber
+
+        Awi = Pwi * self.dx                                         # [m2] - inner area of the combustion chamber
+        Awo = Pwo * self.dx                                         # [m2] - interface area of the wall from the coolant circuit with combustion chamber
+
+        Af  = self.h * self.dx * 2                                  # [m2] - Heat tranfer area for 1 fin
+
+        # Values for the fin modeling - obtain fin parameter 'm'
+        Pf  = self.dx * 2                                           # [m]  - Heat transfer perimeter
+        Ac  = self.dx * self.t2                                     # [m2] - Cross sectional area fin
+
+        return (Awi, Awo, Af), (Pwi, Pwo), (Pf, Ac)
+
 
     # Get ohmic equivalent thermal resistances
     def get_ohmic_thermal_equivalences (self):
 
-        R_co = 1 / (self.h_co * (self.Di + 2*self.t) * pi * self.dx)                    # [K/W] - thermal resistance of the coolant circuit
-        R_cc = 1 / (self.h_cc * (self.Di) * pi * self.dx)                               # [K/W] - thermal resistance of the combustion chamber
+        (Awi, Awo, Af), (Pwi, Pwo), (Pf, Ac) = self.get_areas_and_perimeters_heat_transfer()
+        
+        R_co = 1 / (self.h_co * Awo)                                                    # [K/W] - thermal resistance of the coolant circuit
+        R_cc = 1 / (self.h_cc * Awi)                                                    # [K/W] - thermal resistance of the combustion chamber
         R_w  = log((self.Di + 2*self.t) / self.Di) / (2*pi*THERMAL_K*self.dx)           # [K/W] - thermal resistance of the wall
 
-        m   = sqrt((self.h_co * (2*self.h))/(self.k * (self.t2*self.h)))
+        # Fin Modeling
+        m   = sqrt((self.h_co * Pf)/(THERMAL_K * Ac))
         eff = tanh(m*self.h) / (m*self.h)
-        Af  = self.h * self.dx * 2
         R_f = 1 / (eff * Af * self.h_co)
 
         print("eff: ", eff)

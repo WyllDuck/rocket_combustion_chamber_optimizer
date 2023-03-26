@@ -24,7 +24,7 @@ def main ():
     """
     data = get_data("geo/2ndStage_eps150_Ma4_678_gamma_1_1982_contour.txt") * DI_TH / 2 # Dimensionalize the data
 
-    CUT_NOZZLE_R = 0.8 #0.25
+    CUT_NOZZLE_R = 10 #0.8 #0.25
     for i in range(len(data)):
         if (data[i, 1] - CUT_NOZZLE_R) > 0:
             break

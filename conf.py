@@ -1,7 +1,7 @@
 """ GLOBAL PARAMETERS """
 
 # COOLANT PARAMETERS
-INLET_T         = 500       # [K]       - inlet temperature coolant
+INLET_T         = 200       # [K]       - inlet temperature coolant
 INLET_P         = 125       # [bar]     - inlet pressure coolant
 MDOT            = 324       # [kg/s]    - mass flow rate of hot gas
 OF_RATIO        = 3.6       # [-]       - oxygen to fuel ratio
@@ -20,12 +20,12 @@ FRICTION        = 0.012     # [-]       - friction factor
 MELTING_T       = 1357      # [K]       - melting temperature of the material - cooper
 
 # GEOMETRICAL PARAMETERS
-N_CHANNELS          = 30        # [-]       - number of channels in the combustion chamber
+N_CHANNELS          = 60       # [-]       - number of channels in the combustion chamber
 INTER_CHANNEL_T     = 0.001     # [m]       - thickness of the wall separating the channels
 LENGHT_CC           = 0.2578098 # [m]       - length of the combustion chamber
-HEIHT_CHANNEL       = 0.004     # [m]       - height of the cooling channel
+HEIHT_CHANNEL       = 0.01      # [m]       - height of the cooling channel
 DI_CC               = 0.434405  # [m]       - inner diameter of the combustion chamber injection plate
-DI_TH               = 0.243     # [m]       - inner diameter of the combustion chamber throat
+DI_TH               = 0.2410    # [m]       - inner diameter of the combustion chamber throat
 T                   = 0.005     # [m]       - thickness of the wall separating the combustion chamber from the coolant circuit
 
 # INITIAL ASSUMPTIONS
