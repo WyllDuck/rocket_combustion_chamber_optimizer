@@ -2,7 +2,7 @@
 
 # COOLANT PARAMETERS
 INLET_T         = 200       # [K]       - inlet temperature coolant
-INLET_P         = 125       # [bar]     - inlet pressure coolant
+INLET_P         = 145       # [bar]     - inlet pressure coolant
 MDOT            = 324       # [kg/s]    - mass flow rate of hot gas
 OF_RATIO        = 3.6       # [-]       - oxygen to fuel ratio
 
@@ -20,9 +20,8 @@ FRICTION        = 0.012     # [-]       - friction factor
 MELTING_T       = 1357      # [K]       - melting temperature of the material - cooper
 
 # GEOMETRICAL PARAMETERS
-N_CHANNELS          = 60       # [-]       - number of channels in the combustion chamber
+N_CHANNELS          = 200       # [-]       - number of channels in the combustion chamber
 INTER_CHANNEL_T     = 0.001     # [m]       - thickness of the wall separating the channels
-LENGHT_CC           = 0.2578098 # [m]       - length of the combustion chamber
 HEIHT_CHANNEL       = 0.01      # [m]       - height of the cooling channel
 DI_CC               = 0.434405  # [m]       - inner diameter of the combustion chamber injection plate
 DI_TH               = 0.2410    # [m]       - inner diameter of the combustion chamber throat
@@ -36,5 +35,8 @@ T_WO_INIT_ASSUMPTION = 1200 # [K] - initial temperature assumption for outer com
 CONF_COOLANT_FILES = "conf/coolant"
 CONF_GAS_FILES     = "conf/gas"
 GEOMETRY_FILE      = "geo/geometry.csv"
+
+#CEA_FILES           = ["CEA/CH4 gaseous OF3_6 transport properties.txt", "C:/Users/marti/Desktop/rocket propulsion/rocket_combustion_chamber_optimizer/CEA/CH4 gaseous OF3_6 transport properties close to throat.txt"]
+CEA_FILES           = ["CEA/CH4 gaseous OFvary transport properties.txt", "CEA/CH4_2.0_expansion_big.txt"]
 
 # EUHAUST = 6.1 bar

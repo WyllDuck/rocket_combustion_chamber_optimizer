@@ -120,17 +120,11 @@ class CombustionChamber (object):
         
         Re = self.rho_gas * self.v_gas * Di / self.mu_gas
         Pr = self.cp_gas * self.mu_gas / self.k_gas
-        
-        # OPTION 1
-        if True:
-            T_aw = self.T_gas * (1 + pow(Pr, 1/3) * (self.gamma_gas - 1) / 2 * pow(self.v_gas / self.c_gas, 2))
-            Nu = 0.0162 * pow(Re * Pr, 0.82) * pow(T_aw / T_wi, 0.35)
-            print("T_aw: \t{}".format(T_aw))
 
-        # OPTION 2 
-        else:
-            epsilon = (1.82*log10(Re) - 1.64)**(-2)
-            Nu = (epsilon/8) * (Re - 1000) * Pr / (1 + 12.7 * sqrt(epsilon/8) * (pow(Pr, 2/3) - 1)) * (1 + pow((Di / LENGHT_CC), 2/3))
+        T_aw = self.T_gas * (1 + pow(Pr, 1/3) * (self.gamma_gas - 1) / 2 * pow(self.v_gas / self.c_gas, 2))
+        Nu = 0.0162 * pow(Re * Pr, 0.82) * pow(T_aw / T_wi, 0.35)
+        
+        print("T_aw: \t{}".format(T_aw))
         
         print("Re: \t{}".format(Re))
         print("Pr: \t{}".format(Pr))

@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 # Global variables
 from conf import *
 
+LENGHT_CC           = 0.2578098 # [m]   - length of the combustion chamber
+CUT_NOZZLE_R        = 10        # [m]   - cut the nozzle extension at this radius
+
 
 # Function that opens file and return x, y coordinates in a numpy array
 def get_data(filename):
@@ -24,7 +27,6 @@ def main ():
     """
     data = get_data("geo/2ndStage_eps150_Ma4_678_gamma_1_1982_contour.txt") * DI_TH / 2 # Dimensionalize the data
 
-    CUT_NOZZLE_R = 10 #0.8 #0.25
     for i in range(len(data)):
         if (data[i, 1] - CUT_NOZZLE_R) > 0:
             break
