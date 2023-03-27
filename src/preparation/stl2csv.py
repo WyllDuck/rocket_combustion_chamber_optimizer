@@ -1,5 +1,6 @@
 # Tools
 import numpy as np
+from math import pow, sqrt
 from stl import mesh
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
@@ -15,25 +16,21 @@ from conf import *
 
 
 # Using an existing stl file:
-your_mesh = mesh.Mesh.from_file('stl\stage_1.stl')
+your_mesh = mesh.Mesh.from_file('stl\stage_2.stl')
 your_mesh.points /= 1000 # convert to meters
 
 # stage 1
-your_mesh.points[:,0] = your_mesh.points[:,0] * -1
-
+#your_mesh.points[:,0] = your_mesh.points[:,0] * -1
 
 # print and save in numpy array points in the z-y plane
-points = None
+points = np.array([your_mesh.points[0][0], your_mesh.points[0][1]])
+for i in range(1, len(your_mesh.points)):
+    d = sqrt(pow(your_mesh.points[i][1], 2) + pow(your_mesh.points[i][2], 2))
+    points = np.vstack([points, np.array([your_mesh.points[i][0], d])])
 
-for i in range(0, len(your_mesh.points)):
-
-# interpolate spline line
-    
-    if points is not None:
-        points = np.vstack([points, np.array([your_mesh.points[i][0], your_mesh.points[i][1]])])
-    else:
-        points = np.array([your_mesh.points[i][0], your_mesh.points[i][1]])
-
+plt.plot(points[:,0], points[:,1], 'o')
+plt.axis('equal')
+plt.show()
 
 final_points = None
 
@@ -51,6 +48,16 @@ for x_ in x:
     else:
         final_points = np.array(np.array([x_, y_max]))
 
+# Solve error in the combustion chamber profile
+x_min   = min(final_points[:,0])
+x_min2  = min(final_points[1:,0]) # points to curvature initial point at CC
+x_max   = max(final_points[:,0])
+
+extra_points = np.zeros([40, 2])
+extra_points[:,0] = np.linspace(x_min, x_min2, 40)
+extra_points[:,1] = final_points[0,1]
+final_points = np.concatenate([extra_points, final_points[2:]], axis=0) # remove the next 2 points because they look are repeated points in the extra_points array 
+
 f = interp1d(final_points[:,0], final_points[:,1], kind='cubic')
 
 """
@@ -58,8 +65,7 @@ COMPILE DATA
 """
 
 
-x_min = min(final_points[:,0])
-x_max = max(final_points[:,0])
+
 
 x_int1 = np.linspace(x_min, 0, 1000)
 x_int2 = np.linspace(0, x_max, 4000)[1:] # remove the first point because it is the same as the last point of the first interval
@@ -73,6 +79,12 @@ data_final[len(x_int1):, 2] = 2
 data_final[:len(x_int1), 0] = x_int1
 data_final[:len(x_int1), 1] = f(x_int1)
 data_final[:len(x_int1), 2] = 1
+
+CUT_NOZZLE_R = DI_TH + 0.2 # 6.2 bar line
+for i in range(len(x_int1), len(data_final)):
+    if (data_final[i, 1] - CUT_NOZZLE_R) > 0 and data_final[i, 2] == 2:
+        break
+data_final = data_final[:i+1, :]
 
 # Save the data into a file 
 data_final[:, 1] = data_final[:, 1] * 2     # Radius is doubled because we need the diameter
