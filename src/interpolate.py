@@ -38,6 +38,7 @@ def get_interpolation_function_gas_properties ():
     # function_rho      --> [kg/m3]     - function to get the density of the gas in the nozzle
     # function_gamma    --> [-]         - function to get the specific heat ratio of the gas in the nozzle
     # function_c        --> [m/s]       - function to get the speed of sound of the gas in the nozzle
+    # function_p        --> [Pa]        - function to get the pressure of the gas in the nozzle
 
     # Open .csv file using pandas convert to numpy array
     data_gas_T      = pd.read_csv("{}_T.csv".format(CONF_GAS_FILES), header=0).to_numpy()       # expansion_ratio
@@ -47,6 +48,7 @@ def get_interpolation_function_gas_properties ():
     data_gas_rho    = pd.read_csv("{}_rho.csv".format(CONF_GAS_FILES), header=0).to_numpy()     # expansion_ratio
     data_gas_gamma  = pd.read_csv("{}_gamma.csv".format(CONF_GAS_FILES), header=0).to_numpy()   # expansion_ratio
     data_gas_c      = pd.read_csv("{}_c.csv".format(CONF_GAS_FILES), header=0).to_numpy()       # expansion_ratio
+    data_gas_p      = pd.read_csv("{}_p.csv".format(CONF_GAS_FILES), header=0).to_numpy()       # expansion_ratio
 
     # Interolation for the noozle region
     function_T_nozzle      = interp1d(data_gas_T[1:, 0], data_gas_T[1:, 1])
@@ -56,8 +58,9 @@ def get_interpolation_function_gas_properties ():
     function_rho_nozzle    = interp1d(data_gas_rho[1:, 0], data_gas_rho[1:, 1])
     function_gamma_nozzle  = interp1d(data_gas_gamma[1:, 0], data_gas_gamma[1:, 1])
     function_c_nozzle      = interp1d(data_gas_c[1:, 0], data_gas_c[1:, 1])
+    function_p_nozzle      = interp1d(data_gas_p[1:, 0], data_gas_p[1:, 1])
 
-    functions_nozzle =  [function_T_nozzle, function_cp_nozzle, function_mu_nozzle, function_k_nozzle, function_rho_nozzle, function_gamma_nozzle, function_c_nozzle]
+    functions_nozzle =  [function_T_nozzle, function_cp_nozzle, function_mu_nozzle, function_k_nozzle, function_rho_nozzle, function_gamma_nozzle, function_c_nozzle, function_p_nozzle]
 
     # Interpolation for the combustion chamber region
     expansion_ratio_cc = pow(DI_CC, 2) / pow(DI_TH, 2)
@@ -70,6 +73,7 @@ def get_interpolation_function_gas_properties ():
     data_gas_rho[0,0]       = expansion_ratio_cc
     data_gas_gamma[0,0]     = expansion_ratio_cc
     data_gas_c[0,0]         = expansion_ratio_cc
+    data_gas_p[0,0]         = expansion_ratio_cc
 
     function_T_cc           = interp1d(data_gas_T[:2, 0], data_gas_T[:2, 1])
     function_cp_cc          = interp1d(data_gas_cp[:2, 0], data_gas_cp[:2, 1])
@@ -78,8 +82,9 @@ def get_interpolation_function_gas_properties ():
     function_rho_cc         = interp1d(data_gas_rho[:2, 0], data_gas_rho[:2, 1])
     function_gamma_cc       = interp1d(data_gas_gamma[:2, 0], data_gas_gamma[:2, 1])
     function_c_cc           = interp1d(data_gas_c[:2, 0], data_gas_c[:2, 1])
+    function_p_cc           = interp1d(data_gas_p[:2, 0], data_gas_p[:2, 1])
 
-    functions_cc =  [function_T_cc, function_cp_cc, function_mu_cc, function_k_cc, function_rho_cc, function_gamma_cc, function_c_cc]
+    functions_cc =  [function_T_cc, function_cp_cc, function_mu_cc, function_k_cc, function_rho_cc, function_gamma_cc, function_c_cc, function_p_cc]
 
     return functions_cc, functions_nozzle
 

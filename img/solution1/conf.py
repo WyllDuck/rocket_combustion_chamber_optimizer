@@ -22,7 +22,7 @@ MELTING_T       = 1357      # [K]       - melting temperature of the material - 
 # GEOMETRICAL PARAMETERS
 N_CHANNELS          = 300       # [-]       - number of channels in the combustion chamber
 INTER_CHANNEL_T     = 0.002     # [m]       - thickness of the wall separating the channels
-HEIHT_CHANNEL       = 0.015      # [m]       - height of the cooling channel
+HEIGHT_CHANNEL       = 0.015      # [m]       - height of the cooling channel
 T                   = 0.003     # [m]       - thickness of the wall separating the combustion chamber from the coolant circuit
 
 # INITIAL ASSUMPTIONS

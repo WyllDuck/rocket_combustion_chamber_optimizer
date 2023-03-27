@@ -19,7 +19,7 @@ class Solver (object):
 
         functions_cc, functions_nozzle = get_interpolation_function_gas_properties()
 
-        function_T, function_cp, function_mu, function_k, function_rho, function_gamma, function_c = functions_cc
+        function_T, function_cp, function_mu, function_k, function_rho, function_gamma, function_c, function_p = functions_cc
 
         CombustionChamber.function_T_cc     = function_T   
         CombustionChamber.function_cp_cc    = function_cp
@@ -28,8 +28,9 @@ class Solver (object):
         CombustionChamber.function_rho_cc   = function_rho
         CombustionChamber.function_gamma_cc = function_gamma
         CombustionChamber.function_c_cc     = function_c
+        CombustionChamber.function_p_cc     = function_p
 
-        function_T, function_cp, function_mu, function_k, function_rho, function_gamma, function_c = functions_nozzle
+        function_T, function_cp, function_mu, function_k, function_rho, function_gamma, function_c, function_p = functions_nozzle
 
         CombustionChamber.function_T_nozzle     = function_T
         CombustionChamber.function_cp_nozzle    = function_cp
@@ -38,6 +39,7 @@ class Solver (object):
         CombustionChamber.function_rho_nozzle   = function_rho
         CombustionChamber.function_gamma_nozzle = function_gamma
         CombustionChamber.function_c_nozzle     = function_c
+        CombustionChamber.function_p_nozzle     = function_p
 
         """ Section parameters """
         Section.mdot    = MDOT_COOLANT              # [kg/s]    - mass flow rate (all sections have the same mass flow rate)
@@ -45,7 +47,7 @@ class Solver (object):
         Section.t2      = INTER_CHANNEL_T           # [m]       - wall thickness (channels separating wall)
         Section.t       = T                         # [m]       - wall thickness (combustion chamber wall)
         Section.f       = FRICTION                  # [-]       - friction factor
-        Section.h       = HEIHT_CHANNEL             # [m]       - height of the channel
+        Section.h       = HEIGHT_CHANNEL             # [m]       - height of the channel
 
         """ Coolant properties """
         function_cp, function_mu, function_k, function_rho = get_interpolation_function_coolant_properties()
@@ -125,6 +127,10 @@ class Solver (object):
         print("exp_ratio = ", exp_ratio)
         self.cc.get_thermal_properties_gas(region, exp_ratio)
         self.cc.v_gas   = self.cc.get_velocity_hot_gases(s.Di)      # [m/s] - velocity of the hot-gas inside the combustion chamber
+
+        # Get thickness
+        thickness   = self.cc.get_wall_thickness_nsection(s.Di)
+        s.thickness = thickness
 
         # Iterate until the exit temperature is found
         while sum(self.check_assumptions_section(n, (T_out_assumption, T_wi_assumption, T_wo_assumption, p_out_assumption))) > 1e-3:

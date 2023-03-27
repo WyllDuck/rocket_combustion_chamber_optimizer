@@ -188,3 +188,35 @@ def plot_heat_flux_cc (solver, save=False, filename="img/heat_conv_coeffients_cc
     if save:
         plt.savefig(filename)
     plt.show()
+
+
+def plot_thickness (solver, save=False, filename="img/thickness.svg"):
+    
+    xy = get_xy_coord()
+    x_ = xy[:,0]
+    y_ = xy[:,1]
+
+    t = np.zeros([len(x_)])
+
+    for i in range(len(x_)):
+        t[i] = solver.sections[i].thickness
+
+    plt.plot(x_, t, label="wall thickness")
+    
+    # BACKGROUND NOZZLE for reference
+    y_ /= 2
+    ylim_min, ylim_max = plt.gca().get_ylim()
+    y_ = (y_ - min(y_)) / (max(y_) - min(y_))   # normalize y_ to [0, 1]
+    y_ = y_ * (ylim_max - ylim_min) + ylim_min  # scale y_ to [ylim_min, ylim_max]
+
+    plt.plot(x_, y_, color="gray", linestyle="--", label="nozzle profile")
+
+    plt.gca().set_xlabel("x [m]")
+    plt.gca().set_ylabel("t [m]")
+
+    plt.legend()
+    plt.grid()
+
+    if save:
+        plt.savefig(filename)
+    plt.show()

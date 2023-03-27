@@ -49,6 +49,8 @@ class Section (object):
         self.dx     = dx        # [m]   - length of the cross-section
         self.region = region    # [-]   - region of the rocket engine, inside the CC or in the nozzle
 
+        self.thickness = 0      # [m]   - thickness of the wall
+
 
     # Get the hydraulic diameter of the coolant circuit
     def get_hydraulic_diameter (self):
@@ -62,7 +64,7 @@ class Section (object):
         Po = (pi*(self.Di + 2*(self.h + self.t)) - self.n*self.t2)/self.n                   # [m]  - length edge outer perimeter of the coolant channel
         P = Pi + Po + 2*self.h                                                              # [m]  - total perimeter of the coolant channel
 
-        print("AR_channel: \t", HEIHT_CHANNEL/(0.5*(Pi+Po)))
+        print("AR_channel: \t", HEIGHT_CHANNEL/(0.5*(Pi+Po)))
 
         return 4*A/P
 
@@ -116,6 +118,7 @@ class Section (object):
         print("Di: \t", self.Di)
         print("Dh: \t", self.Dh)
         print("region: \t", self.region)
+        print("thickness: \t", self.thickness)
         print()
 
         print("--- temperatures ---")

@@ -18,11 +18,13 @@ M_FUEL = MDOT_COOLANT / (OF_RATIO + 1)
 THERMAL_K       = 385       # [W/mK]    - thermal conductivity of the material
 FRICTION        = 0.012     # [-]       - friction factor
 MELTING_T       = 1357      # [K]       - melting temperature of the material - cooper
+ULTIMATE_STRESS = 200       # [MPa]     - ultimate stress of the material - cooper
+SAFETY_FACTOR   = 1.1      # [-]       - safety factor
 
 # GEOMETRICAL PARAMETERS
 N_CHANNELS          = 300       # [-]       - number of channels in the combustion chamber
 INTER_CHANNEL_T     = 0.002     # [m]       - thickness of the wall separating the channels
-HEIHT_CHANNEL       = 0.015      # [m]       - height of the cooling channel
+HEIGHT_CHANNEL       = 0.015      # [m]       - height of the cooling channel
 T                   = 0.003     # [m]       - thickness of the wall separating the combustion chamber from the coolant circuit
 
 # INITIAL ASSUMPTIONS

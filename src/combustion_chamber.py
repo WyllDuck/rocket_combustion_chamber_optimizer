@@ -17,7 +17,8 @@ class CombustionChamber (object):
     function_rho_cc          = None      # [kg/m3]   - density of the gas inside the combustion chamber
     function_gamma_cc        = None      # [-]       - specific heat ratio of the gas inside the combustion chamber
     function_c_cc            = None      # [m/s]     - speed of sound of the gas inside the combustion chamber
-    
+    function_p_cc            = None      # [Pa]      - pressure of the gas inside the combustion chamber
+
     # from combustion chamber throat to nozzle exit
     function_T_nozzle        = None      # [K]       - temperature of the hot gas at the nozzle positions of the combustion chamber
     function_cp_nozzle       = None      # [J/kgK]   - specific heat capacity of the gas at the nozzle positions of the combustion chamber
@@ -26,6 +27,7 @@ class CombustionChamber (object):
     function_rho_nozzle      = None      # [kg/m3]   - density of the gas at the nozzle positions of the combustion chamber
     function_gamma_nozzle    = None      # [-]       - specific heat ratio of the gas at the nozzle positions of the combustion chamber
     function_c_nozzle        = None      # [m/s]     - speed of sound of the gas at the nozzle positions of the combustion chamber
+    function_p_nozzle        = None      # [Pa]      - pressure of the gas at the nozzle positions of the combustion chamber
 
 
     def __init__ (self) -> None:
@@ -65,6 +67,7 @@ class CombustionChamber (object):
             self.rho_gas    = self.function_rho_cc(exp_ratio)
             self.gamma_gas  = self.function_gamma_cc(exp_ratio)
             self.c_gas      = self.function_c_cc(exp_ratio)
+            self.P          = self.function_p_cc(exp_ratio)
 
         elif region == 2:
             self.T_gas      = self.function_T_nozzle(exp_ratio)
@@ -74,6 +77,7 @@ class CombustionChamber (object):
             self.rho_gas    = self.function_rho_nozzle(exp_ratio)
             self.gamma_gas  = self.function_gamma_nozzle(exp_ratio)
             self.c_gas      = self.function_c_nozzle(exp_ratio)
+            self.P          = self.function_p_nozzle(exp_ratio)
         
 
     def get_velocity_hot_gases (self, Di):
@@ -131,3 +135,16 @@ class CombustionChamber (object):
         print("Nu: \t{}".format(Nu))
 
         return self.k_gas * Nu / Di # hot-gas convection coefficient
+
+
+    def get_wall_thickness_nsection (self, Di):
+        """ 
+        Returns the wall thickness of the combustion chamber
+        --------------------------------
+        in: 
+            Di:     [m] - inner diameter of the combustion chamber
+        out:
+            tw:     [m] - wall thickness of the combustion chamber
+        """
+        
+        return self.P * 1e-1 * Di / (2 * ULTIMATE_STRESS / SAFETY_FACTOR)
