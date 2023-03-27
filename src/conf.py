@@ -37,5 +37,5 @@ GEOMETRY_FILE      = "geo/geometry.csv"
 CEA_FILES           = ["CEA/CH4 gaseous OFvary transport properties.txt", "CEA/CH4_2.0_expansion_big.txt"]
 
 # SET THIS VALUES BASED ON GEOMETRY FILE
-DI_CC               = 0.434405  # [m]       - inner diameter of the combustion chamber injection plate
-DI_TH               = 0.2410    # [m]       - inner diameter of the combustion chamber throat
+DI_CC = 0.42899999022483826 +1e-3    # [m]       - inner diameter of the combustion chamber injection plate
+DI_TH = 0.24102577567100525 -1e-3    # [m]       - inner diameter of the combustion chamber throat

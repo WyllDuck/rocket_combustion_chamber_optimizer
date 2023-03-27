@@ -43,9 +43,6 @@ for x_ in x:
     location    = np.where(points[:,0] == x_)[0]
     y_max       = max(points[location][:,1])
 
-    if x_ == 0:
-        print ("throat D: {}".format(y_max * 2))
-
     if y_max < 0:
         continue
 
@@ -54,7 +51,7 @@ for x_ in x:
     else:
         final_points = np.array(np.array([x_, y_max]))
 
-f = interp1d(final_points[:,0], final_points[:,1], kind='linear')
+f = interp1d(final_points[:,0], final_points[:,1], kind='cubic')
 
 """
 COMPILE DATA
@@ -64,8 +61,8 @@ COMPILE DATA
 x_min = min(final_points[:,0])
 x_max = max(final_points[:,0])
 
-x_int1 = np.linspace(x_min, 0, 100)
-x_int2 = np.linspace(0, x_max, 100)[1:] # remove the first point because it is the same as the last point of the first interval
+x_int1 = np.linspace(x_min, 0, 1000)
+x_int2 = np.linspace(0, x_max, 4000)[1:] # remove the first point because it is the same as the last point of the first interval
 
 data_final = np.zeros([len(x_int1) + len(x_int2), 3])
 
@@ -85,9 +82,12 @@ loc_points_cc = np.where(data_final[:,2] == 1)[0]
 loc_points_no = np.where(data_final[:,2] == 2)[0]
 
 # plot the points
-plt.plot(data_final[loc_points_cc,0], data_final[loc_points_cc,1], 'o')
-plt.plot(data_final[loc_points_no,0], data_final[loc_points_no,1], '-')
+plt.plot(data_final[loc_points_cc,0], data_final[loc_points_cc,1], 'r-')
+plt.plot(data_final[loc_points_no,0], data_final[loc_points_no,1], 'b-')
 
-plt.plot(final_points[:,0], final_points[:,1] * 2, 'o')
+plt.plot(final_points[:,0], final_points[:,1] * 2, 'go')
+
+print("DI_CC = {}".format(2*f(x_min)))
+print("DI_TH = {}".format(2*f(0)))
 
 plt.show()
