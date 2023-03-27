@@ -9,7 +9,7 @@ from conf import *
 """ MAIN """
 def main ():
 
-    dir_ = "img/solution1"
+    dir_ = "img"
 
     solver = Solver()
     solver.solve()

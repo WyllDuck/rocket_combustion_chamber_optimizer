@@ -42,6 +42,7 @@ def plot_temperature (solver, save=False, filename="img/temperature.svg"):
     plt.axhline(y=MELTING_T, color='r', linestyle='--', label="Melting Temperature")
 
     # BACKGROUND NOZZLE for reference
+    y_ /= 2
     ylim_min, ylim_max = plt.gca().get_ylim()
     y_ = (y_ - min(y_)) / (max(y_) - min(y_))   # normalize y_ to [0, 1]
     y_ = y_ * (ylim_max - ylim_min) + ylim_min  # scale y_ to [ylim_min, ylim_max]
@@ -73,6 +74,7 @@ def plot_pressure (solver, save=False, filename="img/pressure.svg"):
     plt.plot(x_, p, label="Pressure Coolant")
     
     # BACKGROUND NOZZLE for reference
+    y_ /= 2
     ylim_min, ylim_max = plt.gca().get_ylim()
     y_ = (y_ - min(y_)) / (max(y_) - min(y_))   # normalize y_ to [0, 1]
     y_ = y_ * (ylim_max - ylim_min) + ylim_min  # scale y_ to [ylim_min, ylim_max]
@@ -104,6 +106,7 @@ def plot_velocity (solver, save=False, filename="img/velocity.svg"):
     plt.plot(x_, v, label="Coolant Velocity")
     
     # BACKGROUND NOZZLE for reference
+    y_ /= 2
     ylim_min, ylim_max = plt.gca().get_ylim()
     y_ = (y_ - min(y_)) / (max(y_) - min(y_))   # normalize y_ to [0, 1]
     y_ = y_ * (ylim_max - ylim_min) + ylim_min  # scale y_ to [ylim_min, ylim_max]
@@ -135,6 +138,7 @@ def plot_heat_flux (solver, save=False, filename="img/heat_flux.svg"):
     plt.plot(x_, Q, label="Heat Flux Q")
     
     # BACKGROUND NOZZLE for reference
+    y_ /= 2
     ylim_min, ylim_max = plt.gca().get_ylim()
     y_ = (y_ - min(y_)) / (max(y_) - min(y_))   # normalize y_ to [0, 1]
     y_ = y_ * (ylim_max - ylim_min) + ylim_min  # scale y_ to [ylim_min, ylim_max]
@@ -168,6 +172,7 @@ def plot_heat_flux_cc (solver, save=False, filename="img/heat_conv_coeffients_cc
     plt.plot(x_, h[:, 1], label="heat convection coeff. cooling channel")
     
     # BACKGROUND NOZZLE for reference
+    y_ /= 2
     ylim_min, ylim_max = plt.gca().get_ylim()
     y_ = (y_ - min(y_)) / (max(y_) - min(y_))   # normalize y_ to [0, 1]
     y_ = y_ * (ylim_max - ylim_min) + ylim_min  # scale y_ to [ylim_min, ylim_max]
