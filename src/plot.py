@@ -130,9 +130,9 @@ def plot_heat_flux (solver, save=False, filename="img/heat_flux.svg"):
     Q = np.zeros(len(x_))
 
     for i in range(len(x_)):
-        Q[i] = solver.sections[i].Q
+        Q[i] = solver.sections[i].Q / solver.sections[i].dx
 
-    plt.plot(x_, Q, label="Heat Flus Q")
+    plt.plot(x_, Q, label="Heat Flux Q")
     
     # BACKGROUND NOZZLE for reference
     ylim_min, ylim_max = plt.gca().get_ylim()
@@ -142,7 +142,7 @@ def plot_heat_flux (solver, save=False, filename="img/heat_flux.svg"):
     plt.plot(x_, y_, color="gray", linestyle="--", label="Nozzle Profile")
 
     plt.gca().set_xlabel("x [m]")
-    plt.gca().set_ylabel("Q [W/m^2]")
+    plt.gca().set_ylabel("Q [W/m]")
 
     plt.legend()
     plt.grid()
